@@ -20,8 +20,15 @@ GameState.prototype.create = function() {
 
     game.stage.backgroundColor = '#9c9c9c';
 
+    this.cities = game.add.group();
+    this.cities.add(new City(this, stageSize.width/6, stageSize.height-50));
+    this.cities.add(new City(this, (stageSize.width/6)*2, stageSize.height-50));
+    this.cities.add(new City(this, (stageSize.width/6)*3, stageSize.height-50));
+    this.cities.add(new City(this, (stageSize.width/6)*4, stageSize.height-50));
+    this.cities.add(new City(this, (stageSize.width/6)*5, stageSize.height-50));
+
     this.baddies = game.add.group();
-    this.baddieTimer = game.time.events.loop(1, function(){
+    this.baddieTimer = game.time.events.loop(500, function(){
         var baddie = this.game.add.existing(
             new Baddie(this)
         );
@@ -48,6 +55,7 @@ var Baddie = function (game) {
 
     // Create the sprite
     Phaser.Sprite.call(this, game, x, y, 'baddie');
+    this.anchor.setTo(0.5, 0.5);
 
     // Uncomment this line to make faster sprites larger, giving a parallax effect
     //this.scale.setTo(scaleSpeed(this.speedDown));
@@ -61,7 +69,7 @@ var Baddie = function (game) {
     // Enable physics and set velocity and gravity
     this.game.physics.enable(this, Phaser.Physics.ARCADE);
     this.body.velocity.setTo(this.speedSide, this.speedDown);
-    this.body.gravity.y = 100;
+    this.body.gravity.y = 10;
 
     //This handy event lets us check if the baddie is completely off screen. If it is, we get rid of it.
     this.checkWorldBounds = true;
@@ -72,6 +80,16 @@ var Baddie = function (game) {
 };
 Baddie.prototype = Object.create(Phaser.Sprite.prototype);
 Baddie.prototype.constructor = Baddie;
+
+var City = function (game, x, y) {
+    Phaser.Sprite.call(this, game, x, y, 'city');
+    this.scale.setTo(spriteScale);
+    this.anchor.setTo(0.5, 0.5);
+
+    this.hit = false;
+};
+City.prototype = Object.create(Phaser.Sprite.prototype);
+City.prototype.constructor = City;
 
 //This line instantiates a new Phaser Game with a resolution of 1136x640 (iPhone5 Res), names it 'game',
 //and adds GameState as the default state.

@@ -5,9 +5,11 @@
 var stageSize = {width:800, height:600};
 var spriteScale = 4;
 
-var GameState = function(game){};
+var cities, baddies, booms;
 
-GameState.prototype.preload = function() {
+var gameState = function(game){};
+
+gameState.prototype.preload = function() {
 //Here you can preload images, audio, spritesheets and so on.
     this.game.load.image('missile', 'img/launcher.gif');
     this.game.load.image('baddie', 'img/baddie.gif');
@@ -15,17 +17,17 @@ GameState.prototype.preload = function() {
     this.game.load.image('boom', 'img/boom.gif');
 };
 
-GameState.prototype.create = function() {
+gameState.prototype.create = function() {
 //This is called immediately after preloading.
 
     game.stage.backgroundColor = '#9c9c9c';
 
-    this.cities = game.add.group();
-    this.cities.add(new City(this, stageSize.width/6, stageSize.height-50));
-    this.cities.add(new City(this, (stageSize.width/6)*2, stageSize.height-50));
-    this.cities.add(new City(this, (stageSize.width/6)*3, stageSize.height-50));
-    this.cities.add(new City(this, (stageSize.width/6)*4, stageSize.height-50));
-    this.cities.add(new City(this, (stageSize.width/6)*5, stageSize.height-50));
+    cities = game.add.group();
+    cities.add(new City(this, stageSize.width/6, stageSize.height-50));
+    cities.add(new City(this, (stageSize.width/6)*2, stageSize.height-50));
+    cities.add(new City(this, (stageSize.width/6)*3, stageSize.height-50));
+    cities.add(new City(this, (stageSize.width/6)*4, stageSize.height-50));
+    cities.add(new City(this, (stageSize.width/6)*5, stageSize.height-50));
 
     this.baddies = game.add.group();
     this.baddieTimer = game.time.events.loop(500, function(){
@@ -33,12 +35,20 @@ GameState.prototype.create = function() {
             new Baddie(this)
         );
         this.baddies.add(baddie);
-console.log(this.baddies.countLiving());
     }, this);
+
+    booms = game.add.group();
 };
 
-GameState.prototype.update = function() {
+gameState.prototype.update = function() {
 //This method is called every frame.
+
+    // game.physics.arcade.overlap(this.baddies, cities, baddieHitsCity, null, this);
+    game.physics.arcade.collide(cities, this.baddies, baddieHitsCity, null, this);
+};
+
+gameState.prototype.render = function () {
+    game.debug.body(cities);
 };
 
 var scaleSpeed = function (baseSpeed) {
@@ -86,15 +96,44 @@ var City = function (game, x, y) {
     this.scale.setTo(spriteScale);
     this.anchor.setTo(0.5, 0.5);
 
+    this.game.physics.enable(this, Phaser.Physics.ARCADE);
+
     this.hit = false;
 };
 City.prototype = Object.create(Phaser.Sprite.prototype);
 City.prototype.constructor = City;
 
+var baddieHitsCity = function (city, baddie) {
+    blowUpBaddie(baddie);
+    blowUpCity(city);
+};
+
+var blowUpBaddie = function (baddie) {
+    booms.add(new Boom(this, baddie.x, baddie.y));
+    baddie.kill();
+};
+
+var blowUpCity = function (city) {
+    city.kill();
+
+    if (cities.countLiving() < 1) {
+        //this.baddies.kill();
+console.log('Game Over');
+    }
+};
+
+var Boom = function (game, x, y) {
+    Phaser.Sprite.call(this, game, x, y, 'city');
+    this.scale.setTo(spriteScale);
+    this.anchor.setTo(0.5, 0.5);
+};
+Boom.prototype = Object.create(Phaser.Sprite.prototype);
+Boom.prototype.constructor = Boom;
+
 //This line instantiates a new Phaser Game with a resolution of 1136x640 (iPhone5 Res), names it 'game',
-//and adds GameState as the default state.
-var game = new Phaser.Game(stageSize.width, stageSize.height, Phaser.AUTO, 'game');
-game.state.add('game', GameState, true);
+//and adds gameState as the default state.
+var game = new Phaser.Game(stageSize.width, stageSize.height, Phaser.AUTO, 'gameDiv');
+game.state.add('game', gameState, true);
 
 /*
 

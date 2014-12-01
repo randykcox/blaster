@@ -1,5 +1,7 @@
 The goal of this project is to use Phaser to remake M-Blaster, a DHTML game written by Chris Houser and Randy Cox sometime back in 2001 when they were supposed to be working.
 
+I was inspired to do this project by Earle Castledine's [*Gonzo Game Dev*](https://www.youtube.com/watch?v=H6roNQE8t-c) presentation at [Nodevember 2014](http://nodevember.org/).
+
 From: http://chouser.n01se.net/mb2/ :
 
 >###What is M-Blaster?

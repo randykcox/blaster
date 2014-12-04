@@ -5,6 +5,8 @@
 var stageSize = {width:800, height:600};
 var spriteScale = 4;
 
+var cities, baddies, booms;
+
 var gameState = {
 
     preload : function() {
@@ -20,28 +22,28 @@ var gameState = {
 
         this.stage.backgroundColor = '#9c9c9c';
 
-        this.cities = this.add.group();
-        this.cities.add(new City(this, stageSize.width/6, stageSize.height-50));
-        this.cities.add(new City(this, (stageSize.width/6)*2, stageSize.height-50));
-        this.cities.add(new City(this, (stageSize.width/6)*3, stageSize.height-50));
-        this.cities.add(new City(this, (stageSize.width/6)*4, stageSize.height-50));
-        this.cities.add(new City(this, (stageSize.width/6)*5, stageSize.height-50));
+        cities = this.add.group();
+        cities.add(new City(this, stageSize.width/6, stageSize.height-50));
+        cities.add(new City(this, (stageSize.width/6)*2, stageSize.height-50));
+        cities.add(new City(this, (stageSize.width/6)*3, stageSize.height-50));
+        cities.add(new City(this, (stageSize.width/6)*4, stageSize.height-50));
+        cities.add(new City(this, (stageSize.width/6)*5, stageSize.height-50));
 
-        this.baddies = this.add.group();
+        baddies = this.add.group();
         this.baddieTimer = this.time.events.loop(500, function(){
             var baddie = this.add.existing(
                 new Baddie(this)
             );
-            this.baddies.add(baddie);
+            baddies.add(baddie);
         }, this);
 
-        this.booms = this.add.group();
+        booms = this.add.group();
     },
 
     update : function() {
     //This method is called every frame.
 
-        this.physics.arcade.collide(this.cities, this.baddies, this.baddieHitsCity, null, this);
+        this.physics.arcade.collide(cities, baddies, this.baddieHitsCity, null, this);
     },
 
     render : function () {
@@ -54,15 +56,15 @@ var gameState = {
     },
 
     blowUpBaddie : function (baddie) {
-        this.booms.add(new Boom(this, baddie.x, baddie.y));
+        booms.add(new Boom(this, baddie.x, baddie.y));
         baddie.kill();
     },
 
     blowUpCity : function (city) {
         city.kill();
 
-        if (this.cities.countLiving() < 1) {
-            this.baddies.destroy();
+        if (cities.countLiving() < 1) {
+            baddies.destroy();
             console.log('Game Over');
         }
     }
@@ -142,22 +144,8 @@ Boom.prototype.constructor = Boom;
 
 /*
 
-var game = new Phaser.Game(stageSize.width, stageSize.height, Phaser.AUTO, 'phaser-example', { preload: preload, create: create, update: update, render: render });
-
-
-var launcher;
-var bullets;
-var baddies;
-var baddieTimer;
-
-var fireRate = 100;
-var nextFire = 0;
 
 function create() {
-
-    game.physics.startSystem(Phaser.Physics.ARCADE);
-
-
 
     bullets = game.add.group();
     bullets.enableBody = true;
@@ -205,29 +193,7 @@ function fire() {
 
 }
 
-function render() {
 
-    game.debug.text('Active Bullets: ' + bullets.countLiving() + ' / ' + bullets.total, 32, 32);
-    game.debug.spriteInfo(launcher, 32, 450);
-
-}
-
-
-var Missile = function (game, x, y, target) {
-    //Here's where we create our player sprite.
-    Phaser.Sprite.call(this, game, x, y, 'missile');
-    //We set the game input as the target
-    this.target = target;
-    //The anchor is the 'center point' of the sprite. 0.5, 0.5 means it will be aligned and rotated by its center point.
-    this.anchor.setTo(0.5, 0.5);
-    //Finally we enable physics so we can move the player around (this is how easy physics is in Phaser)
-    this.game.physics.enable(this, Phaser.Physics.ARCADE);
-    //We need a target position for our player to head to
-    this.targetPos = {x:this.x, y:this.y};
-    //And an easing constant to smooth the movement
-    this.easer = 0.5;
-    this.scale.setTo(10);
-};
 
 
 */

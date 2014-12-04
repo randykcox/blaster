@@ -5,51 +5,78 @@
 var stageSize = {width:800, height:600};
 var spriteScale = 4;
 
-var cities, baddies, booms;
+var gameState = {
 
-var gameState = function(game){};
+    preload : function() {
+    //Here you can preload images, audio, spritesheets and so on.
+        this.load.image('missile', 'img/launcher.gif');
+        this.load.image('baddie', 'img/baddie.gif');
+        this.load.image('city', 'img/city.gif');
+        this.load.image('boom', 'img/boom.gif');
+    },
 
-gameState.prototype.preload = function() {
-//Here you can preload images, audio, spritesheets and so on.
-    this.game.load.image('missile', 'img/launcher.gif');
-    this.game.load.image('baddie', 'img/baddie.gif');
-    this.game.load.image('city', 'img/city.gif');
-    this.game.load.image('boom', 'img/boom.gif');
+    create : function() {
+    //This is called immediately after preloading.
+
+        this.stage.backgroundColor = '#9c9c9c';
+
+        this.cities = this.add.group();
+        this.cities.add(new City(this, stageSize.width/6, stageSize.height-50));
+        this.cities.add(new City(this, (stageSize.width/6)*2, stageSize.height-50));
+        this.cities.add(new City(this, (stageSize.width/6)*3, stageSize.height-50));
+        this.cities.add(new City(this, (stageSize.width/6)*4, stageSize.height-50));
+        this.cities.add(new City(this, (stageSize.width/6)*5, stageSize.height-50));
+
+        this.baddies = this.add.group();
+        this.baddieTimer = this.time.events.loop(500, function(){
+            var baddie = this.add.existing(
+                new Baddie(this)
+            );
+            this.baddies.add(baddie);
+        }, this);
+
+        this.booms = this.add.group();
+    },
+
+    update : function() {
+    //This method is called every frame.
+
+        this.physics.arcade.collide(this.cities, this.baddies, this.baddieHitsCity, null, this);
+    },
+
+    render : function () {
+//        this.debug.body(cities);
+    },
+
+    baddieHitsCity : function (city, baddie) {
+        this.blowUpBaddie(baddie);
+        this.blowUpCity(city);
+    },
+
+    blowUpBaddie : function (baddie) {
+        this.booms.add(new Boom(this, baddie.x, baddie.y));
+        baddie.kill();
+    },
+
+    blowUpCity : function (city) {
+        city.kill();
+
+        if (this.cities.countLiving() < 1) {
+            this.baddies.destroy();
+            console.log('Game Over');
+        }
+    }
 };
 
-gameState.prototype.create = function() {
-//This is called immediately after preloading.
-
-    game.stage.backgroundColor = '#9c9c9c';
-
-    cities = game.add.group();
-    cities.add(new City(this, stageSize.width/6, stageSize.height-50));
-    cities.add(new City(this, (stageSize.width/6)*2, stageSize.height-50));
-    cities.add(new City(this, (stageSize.width/6)*3, stageSize.height-50));
-    cities.add(new City(this, (stageSize.width/6)*4, stageSize.height-50));
-    cities.add(new City(this, (stageSize.width/6)*5, stageSize.height-50));
-
-    this.baddies = game.add.group();
-    this.baddieTimer = game.time.events.loop(500, function(){
-        var baddie = this.game.add.existing(
-            new Baddie(this)
-        );
-        this.baddies.add(baddie);
-    }, this);
-
-    booms = game.add.group();
-};
-
-gameState.prototype.update = function() {
-//This method is called every frame.
-
-    // game.physics.arcade.overlap(this.baddies, cities, baddieHitsCity, null, this);
-    game.physics.arcade.collide(cities, this.baddies, baddieHitsCity, null, this);
-};
-
-gameState.prototype.render = function () {
-    game.debug.body(cities);
-};
+//This line instantiates a new Phaser Game with a resolution of 1136x640 (iPhone5 Res), names it 'game',
+//and adds gameState as the default state.
+var game = new Phaser.Game(
+    stageSize.width,
+    stageSize.height,
+    Phaser.AUTO,
+    'gameDiv',
+    gameState
+);
 
 var scaleSpeed = function (baseSpeed) {
     return spriteScale+(baseSpeed/100);
@@ -103,37 +130,15 @@ var City = function (game, x, y) {
 City.prototype = Object.create(Phaser.Sprite.prototype);
 City.prototype.constructor = City;
 
-var baddieHitsCity = function (city, baddie) {
-    blowUpBaddie(baddie);
-    blowUpCity(city);
-};
-
-var blowUpBaddie = function (baddie) {
-    //booms.add(new Boom(this, baddie.x, baddie.y));
-    baddie.kill();
-};
-
-var blowUpCity = function (city) {
-    city.kill();
-
-    if (cities.countLiving() < 1) {
-        //this.baddies.kill();
-console.log('Game Over');
-    }
-};
 
 var Boom = function (game, x, y) {
-    Phaser.Sprite.call(this, game, x, y, 'city');
+    Phaser.Sprite.call(this, game, x, y, 'boom');
     this.scale.setTo(spriteScale);
     this.anchor.setTo(0.5, 0.5);
 };
 Boom.prototype = Object.create(Phaser.Sprite.prototype);
 Boom.prototype.constructor = Boom;
 
-//This line instantiates a new Phaser Game with a resolution of 1136x640 (iPhone5 Res), names it 'game',
-//and adds gameState as the default state.
-var game = new Phaser.Game(stageSize.width, stageSize.height, Phaser.AUTO, 'gameDiv');
-game.state.add('game', gameState, true);
 
 /*
 

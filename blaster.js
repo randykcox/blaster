@@ -109,7 +109,7 @@ var baddieHitsCity = function (city, baddie) {
 };
 
 var blowUpBaddie = function (baddie) {
-    booms.add(new Boom(this, baddie.x, baddie.y));
+    //booms.add(new Boom(this, baddie.x, baddie.y));
     baddie.kill();
 };
 

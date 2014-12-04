@@ -185,6 +185,7 @@ footer {
 
 .coolButton {
   display: block;
+  text-align: center;
 
   padding: 5px 10px;
   margin-bottom: 10px;

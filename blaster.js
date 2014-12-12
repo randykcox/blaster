@@ -14,7 +14,7 @@ var gameState = {
     //Here you can preload images, audio, spritesheets and so on.
         this.load.image('missile', 'img/missile.png');
         this.load.image('baddie', 'img/bomb.png');
-        this.load.image('city', 'img/city.gif');
+        this.load.image('city', 'img/newcity.png');
         this.load.image('boom', 'img/boom.gif');
     },
 
@@ -22,6 +22,12 @@ var gameState = {
     //This is called immediately after preloading.
 
         this.stage.backgroundColor = '#9c9c9c';
+
+        // Show FPS
+        this.game.time.advancedTiming = true;
+        this.fpsText = this.game.add.text(
+            20, 20, '', { font: '16px Arial', fill: '#ffffff' }
+        );
 
         cities = this.add.group();
         this.addCities();
@@ -34,6 +40,9 @@ var gameState = {
 
     update : function() {
     //This method is called every frame.
+        if (this.game.time.fps !== 0) {
+            this.fpsText.setText(this.game.time.fps + ' FPS');
+        }
 
         this.physics.arcade.collide(cities, baddies, this.baddieHitsCity, null, this);
     },
@@ -86,7 +95,9 @@ var game = new Phaser.Game(
     stageSize.height,
     Phaser.AUTO,
     'gameDiv',
-    gameState
+    gameState,
+    false,  // transparent game object
+    false   // antialias
 );
 
 var scaleSpeed = function (baseSpeed) {

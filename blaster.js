@@ -4,6 +4,7 @@
 
 var stageSize = {width:800, height:600};
 var spriteScale = 4;
+var GRAVITY = 50;
 
 var cities, baddies, booms;
 
@@ -11,9 +12,9 @@ var gameState = {
 
     preload : function() {
     //Here you can preload images, audio, spritesheets and so on.
-        this.load.image('missile', 'img/launcher.gif');
-        this.load.image('baddie', 'img/baddie.gif');
-        this.load.image('city', 'img/city.gif');
+        this.load.image('missile', 'img/missile.png');
+        this.load.image('baddie', 'img/bomb.png');
+        this.load.image('city', 'img/newcity.png');
         this.load.image('boom', 'img/boom.gif');
     },
 
@@ -22,32 +23,49 @@ var gameState = {
 
         this.stage.backgroundColor = '#9c9c9c';
 
+        // Show FPS
+        this.game.time.advancedTiming = true;
+        this.fpsText = this.game.add.text(
+            20, 20, '', { font: '16px Arial', fill: '#ffffff' }
+        );
+
         cities = this.add.group();
-        cities.add(new City(this, stageSize.width/6, stageSize.height-50));
-        cities.add(new City(this, (stageSize.width/6)*2, stageSize.height-50));
-        cities.add(new City(this, (stageSize.width/6)*3, stageSize.height-50));
-        cities.add(new City(this, (stageSize.width/6)*4, stageSize.height-50));
-        cities.add(new City(this, (stageSize.width/6)*5, stageSize.height-50));
+        this.addCities();
 
         baddies = this.add.group();
-        this.baddieTimer = this.time.events.loop(500, function(){
-            var baddie = this.add.existing(
-                new Baddie(this)
-            );
-            baddies.add(baddie);
-        }, this);
+        this.unleashTheBaddies();
 
         booms = this.add.group();
     },
 
     update : function() {
     //This method is called every frame.
+        if (this.game.time.fps !== 0) {
+            this.fpsText.setText(this.game.time.fps + ' FPS');
+        }
 
         this.physics.arcade.collide(cities, baddies, this.baddieHitsCity, null, this);
     },
 
     render : function () {
 //        this.debug.body(cities);
+    },
+
+    addCities : function () {
+        cities.add(new City(this, stageSize.width/6, stageSize.height-50));
+        cities.add(new City(this, (stageSize.width/6)*2, stageSize.height-50));
+        cities.add(new City(this, (stageSize.width/6)*3, stageSize.height-50));
+        cities.add(new City(this, (stageSize.width/6)*4, stageSize.height-50));
+        cities.add(new City(this, (stageSize.width/6)*5, stageSize.height-50));
+    },
+
+    unleashTheBaddies : function (withParallax) {
+        this.baddieTimer = this.time.events.loop(500, function(){
+            var baddie = this.add.existing(
+                new Baddie(this, withParallax)
+            );
+            baddies.add(baddie);
+        }, this);
     },
 
     baddieHitsCity : function (city, baddie) {
@@ -77,7 +95,9 @@ var game = new Phaser.Game(
     stageSize.height,
     Phaser.AUTO,
     'gameDiv',
-    gameState
+    gameState,
+    false,  // transparent game object
+    false   // antialias
 );
 
 var scaleSpeed = function (baseSpeed) {
@@ -98,7 +118,7 @@ var Baddie = function (game) {
 
     // Uncomment this line to make faster sprites larger, giving a parallax effect
     //this.scale.setTo(scaleSpeed(this.speedDown));
-    this.scale.setTo(spriteScale);
+    this.scale.setTo(2);
 
     // Flip horizontally if it is falling to the left
     if (this.speedSide < 0) {
@@ -108,7 +128,7 @@ var Baddie = function (game) {
     // Enable physics and set velocity and gravity
     this.game.physics.enable(this, Phaser.Physics.ARCADE);
     this.body.velocity.setTo(this.speedSide, this.speedDown);
-    this.body.gravity.y = 10;
+    this.body.gravity.y = GRAVITY;
 
     //This handy event lets us check if the baddie is completely off screen. If it is, we get rid of it.
     this.checkWorldBounds = true;

@@ -4,6 +4,7 @@
 
 var stageSize = {width:800, height:600};
 var spriteScale = 4;
+var GRAVITY = 50;
 
 var cities, baddies, booms;
 
@@ -11,8 +12,8 @@ var gameState = {
 
     preload : function() {
     //Here you can preload images, audio, spritesheets and so on.
-        this.load.image('missile', 'img/launcher.gif');
-        this.load.image('baddie', 'img/baddie.gif');
+        this.load.image('missile', 'img/missile.png');
+        this.load.image('baddie', 'img/bomb.png');
         this.load.image('city', 'img/city.gif');
         this.load.image('boom', 'img/boom.gif');
     },
@@ -23,46 +24,18 @@ var gameState = {
         this.stage.backgroundColor = '#9c9c9c';
 
         cities = this.add.group();
-        baddies = this.add.group();
-        booms = this.add.group();
+        this.addCities();
 
-        this.reset();
-// this.input.onDown.add(this.startGame, this);
-        this.startGame();
+        baddies = this.add.group();
+        this.unleashTheBaddies();
+
+        booms = this.add.group();
     },
 
     update : function() {
     //This method is called every frame.
-        if (this.gameIsRunning) {
 
-            this.physics.arcade.collide(cities, baddies, this.baddieHitsCity, null, this);
-
-        } else {
-            // intro loop
-        }
-    },
-
-    reset : function () {
-        this.gameIsRunning = false;
-        this.gameOver = false;
-        this.score = 0;
-    },
-
-    startGame : function () {
-
-        baddies.destroy(); // from the intro screen
-
-        this.gameIsRunning = true;
-        this.addCities();
-        this.unleashTheBaddies();
-    },
-
-    gameOver : function () {
-        this.gameIsRunning = false;
-        baddies.destroy();
-        console.log('Game Over');
-
-        this.unleashTheBaddies(true);
+        this.physics.arcade.collide(cities, baddies, this.baddieHitsCity, null, this);
     },
 
     render : function () {
@@ -79,7 +52,6 @@ var gameState = {
 
     unleashTheBaddies : function (withParallax) {
         this.baddieTimer = this.time.events.loop(500, function(){
-            console.log('Drop baddie!');
             var baddie = this.add.existing(
                 new Baddie(this, withParallax)
             );
@@ -101,7 +73,8 @@ var gameState = {
         city.kill();
 
         if (cities.countLiving() < 1) {
-            this.gameOver();
+            baddies.destroy();
+            console.log('Game Over');
         }
     }
 };
@@ -120,16 +93,12 @@ var scaleSpeed = function (baseSpeed) {
     return spriteScale+(baseSpeed/100);
 };
 
-/*
-*   Baddie
-*/
-var Baddie = function (game, parallaxIsOn) {
+var Baddie = function (game) {
 
     var x = Math.random()*stageSize.width;
+    // var y = -50;
     var y = 0;
-
-    // this.speedDown = parallaxIsOn ? 25 : 25+(Math.random()*1000);
-    this.speedDown = 25;
+    this.speedDown = 25;//+(Math.random()*1000);
     this.speedSide = (300) * (Math.random()-0.5);
 
     // Create the sprite
@@ -137,12 +106,8 @@ var Baddie = function (game, parallaxIsOn) {
     this.anchor.setTo(0.5, 0.5);
 
     // Uncomment this line to make faster sprites larger, giving a parallax effect
-//    if (parallaxIsOn) {
-    if (false) {
-        this.scale.setTo(scaleSpeed(this.speedDown));
-    } else {
-        this.scale.setTo(spriteScale);
-    }
+    //this.scale.setTo(scaleSpeed(this.speedDown));
+    this.scale.setTo(2);
 
     // Flip horizontally if it is falling to the left
     if (this.speedSide < 0) {
@@ -152,7 +117,7 @@ var Baddie = function (game, parallaxIsOn) {
     // Enable physics and set velocity and gravity
     this.game.physics.enable(this, Phaser.Physics.ARCADE);
     this.body.velocity.setTo(this.speedSide, this.speedDown);
-    this.body.gravity.y = 10; // pixels/second/second
+    this.body.gravity.y = GRAVITY;
 
     //This handy event lets us check if the baddie is completely off screen. If it is, we get rid of it.
     this.checkWorldBounds = true;
@@ -164,18 +129,6 @@ var Baddie = function (game, parallaxIsOn) {
 Baddie.prototype = Object.create(Phaser.Sprite.prototype);
 Baddie.prototype.constructor = Baddie;
 
-/*
-*   Missile
-*/
-var Missile = function (game) {
-
-};
-Missile.prototype = Object.create(Phaser.Sprite.prototype);
-Missile.prototype.contstructor = Missile;
-
-/*
-*   City
-*/
 var City = function (game, x, y) {
     Phaser.Sprite.call(this, game, x, y, 'city');
     this.scale.setTo(spriteScale);
@@ -188,9 +141,7 @@ var City = function (game, x, y) {
 City.prototype = Object.create(Phaser.Sprite.prototype);
 City.prototype.constructor = City;
 
-/*
-*   Boom
-*/
+
 var Boom = function (game, x, y) {
     Phaser.Sprite.call(this, game, x, y, 'boom');
     this.scale.setTo(spriteScale);

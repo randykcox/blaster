@@ -6,15 +6,18 @@ var stageSize = {width:800, height:600};
 var spriteScale = 4;
 var GRAVITY = 50;
 
-var cities, baddies, booms;
+var targets, balloons, booms;
 
 var gameState = {
 
     preload : function() {
     //Here you can preload images, audio, spritesheets and so on.
-        this.load.image('missile', 'img/missile.png');
-        this.load.image('baddie', 'img/bomb.png');
-        this.load.image('city', 'img/newcity.png');
+        // this.load.image('missile', 'img/missile.png');
+        this.load.spritesheet('frisbee', 'img/Frisbee.png', 14, 6);
+        // this.load.image('balloon', 'img/Water Balloon.png');
+        this.load.spritesheet('balloon', 'img/Water Balloon.png', 16, 16);
+        this.load.image('castle', 'img/Sand Castle.png');
+        this.load.image('lifeguard', 'img/Lifeguard_1.png');
         this.load.image('boom', 'img/boom.gif');
     },
 
@@ -29,11 +32,11 @@ var gameState = {
             20, 20, '', { font: '16px Arial', fill: '#ffffff' }
         );
 
-        cities = this.add.group();
-        this.addCities();
+        targets = this.add.group();
+        this.addTargets();
 
-        baddies = this.add.group();
-        this.unleashTheBaddies();
+        balloons = this.add.group();
+        this.unleashTheBalloons();
 
         booms = this.add.group();
     },
@@ -44,45 +47,50 @@ var gameState = {
             this.fpsText.setText(this.game.time.fps + ' FPS');
         }
 
-        this.physics.arcade.collide(cities, baddies, this.baddieHitsCity, null, this);
+        this.physics.arcade.collide(targets, balloons, this.balloonHitsCastle, null, this);
     },
 
     render : function () {
-//        this.debug.body(cities);
+//        this.debug.body(targets);
     },
 
-    addCities : function () {
-        cities.add(new City(this, stageSize.width/6, stageSize.height-50));
-        cities.add(new City(this, (stageSize.width/6)*2, stageSize.height-50));
-        cities.add(new City(this, (stageSize.width/6)*3, stageSize.height-50));
-        cities.add(new City(this, (stageSize.width/6)*4, stageSize.height-50));
-        cities.add(new City(this, (stageSize.width/6)*5, stageSize.height-50));
+    addTargets : function () {
+        var castleSpacing = stageSize.width/7;
+        var offset = castleSpacing/2;
+
+        targets.add(new Castle(this, castleSpacing-offset, stageSize.height-50));
+        targets.add(new Castle(this, castleSpacing*2-offset, stageSize.height-50));
+        targets.add(new Castle(this, castleSpacing*3-offset, stageSize.height-50));
+        targets.add(new Lifeguard(this, castleSpacing*4-offset, stageSize.height-50));
+        targets.add(new Castle(this, castleSpacing*5-offset, stageSize.height-50));
+        targets.add(new Castle(this, castleSpacing*6-offset, stageSize.height-50));
+        targets.add(new Castle(this, castleSpacing*7-offset, stageSize.height-50));
     },
 
-    unleashTheBaddies : function (withParallax) {
-        this.baddieTimer = this.time.events.loop(500, function(){
-            var baddie = this.add.existing(
-                new Baddie(this, withParallax)
+    unleashTheBalloons : function (withParallax) {
+        this.balloonTimer = this.time.events.loop(500, function(){
+            var balloon = this.add.existing(
+                new Balloon(this, withParallax)
             );
-            baddies.add(baddie);
+            balloons.add(balloon);
         }, this);
     },
 
-    baddieHitsCity : function (city, baddie) {
-        this.blowUpBaddie(baddie);
-        this.blowUpCity(city);
+    balloonHitsCastle : function (castle, balloon) {
+        this.blowUpBalloon(balloon);
+        this.blowUpCastle(castle);
     },
 
-    blowUpBaddie : function (baddie) {
-        booms.add(new Boom(this, baddie.x, baddie.y));
-        baddie.kill();
+    blowUpBalloon : function (balloon) {
+        booms.add(new Boom(this, balloon.x, balloon.y));
+        balloon.kill();
     },
 
-    blowUpCity : function (city) {
-        city.kill();
+    blowUpCastle : function (castle) {
+        castle.kill();
 
-        if (cities.countLiving() < 1) {
-            baddies.destroy();
+        if (targets.countLiving() < 1) {
+            balloons.destroy();
             console.log('Game Over');
         }
     }
@@ -104,7 +112,7 @@ var scaleSpeed = function (baseSpeed) {
     return spriteScale+(baseSpeed/100);
 };
 
-var Baddie = function (game) {
+var Balloon = function (game) {
 
     var x = Math.random()*stageSize.width;
     // var y = -50;
@@ -113,7 +121,7 @@ var Baddie = function (game) {
     this.speedSide = (300) * (Math.random()-0.5);
 
     // Create the sprite
-    Phaser.Sprite.call(this, game, x, y, 'baddie');
+    Phaser.Sprite.call(this, game, x, y, 'balloon');
     this.anchor.setTo(0.5, 0.5);
 
     // Uncomment this line to make faster sprites larger, giving a parallax effect
@@ -130,18 +138,18 @@ var Baddie = function (game) {
     this.body.velocity.setTo(this.speedSide, this.speedDown);
     this.body.gravity.y = GRAVITY;
 
-    //This handy event lets us check if the baddie is completely off screen. If it is, we get rid of it.
+    //This handy event lets us check if the balloon is completely off screen. If it is, we get rid of it.
     this.checkWorldBounds = true;
     this.outOfBoundsKill = true;
 
-    // Has this baddie been hit?
+    // Has this balloon been hit?
     this.hit = false;
 };
-Baddie.prototype = Object.create(Phaser.Sprite.prototype);
-Baddie.prototype.constructor = Baddie;
+Balloon.prototype = Object.create(Phaser.Sprite.prototype);
+Balloon.prototype.constructor = Balloon;
 
-var City = function (game, x, y) {
-    Phaser.Sprite.call(this, game, x, y, 'city');
+var Castle = function (game, x, y) {
+    Phaser.Sprite.call(this, game, x, y, 'castle');
     this.scale.setTo(spriteScale);
     this.anchor.setTo(0.5, 0.5);
 
@@ -149,9 +157,20 @@ var City = function (game, x, y) {
 
     this.hit = false;
 };
-City.prototype = Object.create(Phaser.Sprite.prototype);
-City.prototype.constructor = City;
+Castle.prototype = Object.create(Phaser.Sprite.prototype);
+Castle.prototype.constructor = Castle;
 
+var Lifeguard = function (game, x, y) {
+    Phaser.Sprite.call(this, game, x, y, 'lifeguard');
+    this.scale.setTo(spriteScale);
+    this.anchor.setTo(0.5, 0.5);
+
+    this.game.physics.enable(this, Phaser.Physics.ARCADE);
+
+    this.hit = false;
+};
+Lifeguard.prototype = Object.create(Phaser.Sprite.prototype);
+Lifeguard.prototype.constructor = Lifeguard;
 
 var Boom = function (game, x, y) {
     Phaser.Sprite.call(this, game, x, y, 'boom');
@@ -175,7 +194,7 @@ function create() {
     bullets.setAll('checkWorldBounds', true);
     bullets.setAll('outOfBoundsKill', true);
 
-    launcher = game.add.sprite(400, 300, 'city');
+    launcher = game.add.sprite(400, 300, 'castle');
     launcher.anchor.set(0.5);
     launcher.scale.setTo(10);
 
